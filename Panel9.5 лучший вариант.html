@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Панель управления</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #121212;
+      color: white;
+      user-select: none;
+    }
+    label {
+      display: block;
+      margin: 10px 0 4px;
+    }
+    input[type=text], input[type=number], input[type=color] {
+      width: 100%;
+      padding: 6px;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+      background: #222;
+      color: white;
+    }
+    input[type=file] {
+      margin-top: 6px;
+      color: white;
+    }
+    .color-input {
+      width: 60px;
+      height: 30px;
+      padding: 0;
+      border: none;
+      cursor: pointer;
+    }
+    .flex-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .flex-col {
+      flex: 1 1 300px;
+      min-width: 280px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 18px;
+      background-color: #2a8fbd;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:hover {
+      background-color: #1f6f96;
+    }
+    .score-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .score-control button {
+      width: 40px;
+      height: 40px;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 0;
+      user-select: none;
+    }
+    .timer-controls {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .timer-display {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 6px;
+      text-align: center;
+      width: 140px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Панель управления трансляцией</h2>
+
+  <div class="flex-row">
+
+    <div class="flex-col">
+      <label for="team1">Название команды 1</label>
+      <input type="text" id="team1" placeholder="Команда 1" />
+
+      <label for="color1">Цвет плашки команды 1</label>
+      <input type="color" id="color1" class="color-input" value="#0055aa" />
+
+      <label for="team1TextColor">Цвет шрифта названия команды 1</label>
+      <input type="color" id="team1TextColor" class="color-input" value="#ffffff" />
+
+      <label for="logo1File">Логотип команды 1 (файл)</label>
+      <input type="file" id="logo1File" accept="image/*" />
+    </div>
+
+    <div class="flex-col">
+      <label for="team2">Название команды 2</label>
+      <input type="text" id="team2" placeholder="Команда 2" />
+
+      <label for="color2">Цвет плашки команды 2</label>
+      <input type="color" id="color2" class="color-input" value="#aa0000" />
+
+      <label for="team2TextColor">Цвет шрифта названия команды 2</label>
+      <input type="color" id="team2TextColor" class="color-input" value="#ffffff" />
+
+      <label for="logo2File">Логотип команды 2 (файл)</label>
+      <input type="file" id="logo2File" accept="image/*" />
+    </div>
+
+    <div class="flex-col">
+      <label>Счет команды 1</label>
+      <div class="score-control">
+        <button id="score1Minus">−</button>
+        <input type="number" id="score1" min="0" value="0" style="width: 60px; text-align:center;" />
+        <button id="score1Plus">+</button>
+      </div>
+
+      <label>Счет команды 2</label>
+      <div class="score-control">
+        <button id="score2Minus">−</button>
+        <input type="number" id="score2" min="0" value="0" style="width: 60px; text-align:center;" />
+        <button id="score2Plus">+</button>
+      </div>
+
+      <label for="barColor">Цвет плашки счета</label>
+      <input type="color" id="barColor" class="color-input" value="#333333" />
+    </div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <label for="halfTime">Время тайма (в минутах)</label>
+    <input type="number" id="halfTime" min="1" max="120" value="20" />
+  </div>
+
+  <div style="margin-top: 20px;">
+    <label for="tournamentName">Название соревнования</label>
+    <input type="text" id="tournamentName" placeholder="Название турнира" />
+
+    <label for="tournamentColor" style="margin-top: 10px;">Цвет плашки соревнования</label>
+    <input type="color" id="tournamentColor" class="color-input" value="#444444" />
+  </div>
+
+  <div style="margin-top: 20px;">
+    <label>Таймер матча</label>
+    <div class="timer-display" id="timerDisplay">00:00</div>
+    <div class="timer-controls">
+      <button id="timerStart">Начать</button>
+      <button id="timerStop">Остановить</button>
+      <button id="timerReset">Сбросить</button>
+    </div>
+  </div>
+
+  <button id="saveBtn" style="margin-top: 30px;">Сохранить</button>
+
+<script>
+  const team1Input = document.getElementById('team1');
+  const color1Input = document.getElementById('color1');
+  const team1TextColorInput = document.getElementById('team1TextColor');
+  const logo1FileInput = document.getElementById('logo1File');
+
+  const team2Input = document.getElementById('team2');
+  const color2Input = document.getElementById('color2');
+  const team2TextColorInput = document.getElementById('team2TextColor');
+  const logo2FileInput = document.getElementById('logo2File');
+
+  const score1Input = document.getElementById('score1');
+  const score2Input = document.getElementById('score2');
+  const barColorInput = document.getElementById('barColor');
+
+  const halfTimeInput = document.getElementById('halfTime');
+
+  const tournamentNameInput = document.getElementById('tournamentName');
+  const tournamentColorInput = document.getElementById('tournamentColor');
+
+  const saveBtn = document.getElementById('saveBtn');
+
+  const timerDisplay = document.getElementById('timerDisplay');
+  const timerStartBtn = document.getElementById('timerStart');
+  const timerStopBtn = document.getElementById('timerStop');
+  const timerResetBtn = document.getElementById('timerReset');
+
+  const score1PlusBtn = document.getElementById('score1Plus');
+  const score1MinusBtn = document.getElementById('score1Minus');
+  const score2PlusBtn = document.getElementById('score2Plus');
+  const score2MinusBtn = document.getElementById('score2Minus');
+
+  let timerInterval = null;
+  let totalSeconds = 0;
+  let timerRunning = false;
+
+  // Данные панели (включая base64 лого)
+  let panelData = {
+    logo1: '',
+    logo2: ''
+  };
+
+  // Конвертация файла в base64
+  function fileToBase64(file) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  logo1FileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    panelData.logo1 = await fileToBase64(file);
+    saveToStorage();
+  });
+
+  logo2FileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    panelData.logo2 = await fileToBase64(file);
+    saveToStorage();
+  });
+
+  // Кнопки изменения счета
+  score1PlusBtn.onclick = () => {
+    score1Input.value = Number(score1Input.value) + 1;
+    saveToStorage();
+  };
+  score1MinusBtn.onclick = () => {
+    score1Input.value = Math.max(0, Number(score1Input.value) - 1);
+    saveToStorage();
+  };
+  score2PlusBtn.onclick = () => {
+    score2Input.value = Number(score2Input.value) + 1;
+    saveToStorage();
+  };
+  score2MinusBtn.onclick = () => {
+    score2Input.value = Math.max(0, Number(score2Input.value) - 1);
+    saveToStorage();
+  };
+
+  // Таймер
+  function formatTime(s) {
+    const min = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+  }
+
+  function updateTimerDisplay() {
+    timerDisplay.textContent = formatTime(totalSeconds);
+  }
+
+  function startTimer() {
+    if (timerRunning) return;
+    timerRunning = true;
+    timerInterval = setInterval(() => {
+      totalSeconds++;
+      updateTimerDisplay();
+      saveToStorage(); // Обновляем данные в localStorage каждую секунду
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (!timerRunning) return;
+    timerRunning = false;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    saveToStorage();
+  }
+
+  function resetTimer() {
+    totalSeconds = 0;
+    updateTimerDisplay();
+    saveToStorage();
+  }
+
+  timerStartBtn.onclick = startTimer;
+  timerStopBtn.onclick = stopTimer;
+  timerResetBtn.onclick = resetTimer;
+
+  // Сохраняем все в localStorage
+  function saveToStorage() {
+    panelData.team1 = team1Input.value.trim() || 'Команда 1';
+    panelData.color1 = color1Input.value;
+    panelData.team1TextColor = team1TextColorInput.value;
+
+    panelData.team2 = team2Input.value.trim() || 'Команда 2';
+    panelData.color2 = color2Input.value;
+    panelData.team2TextColor = team2TextColorInput.value;
+
+    panelData.score1 = Number(score1Input.value) || 0;
+    panelData.score2 = Number(score2Input.value) || 0;
+    panelData.barColor = barColorInput.value;
+
+    panelData.halfTime = Number(halfTimeInput.value) || 20;
+
+    panelData.tournamentName = tournamentNameInput.value.trim() || '';
+    panelData.tournamentColor = tournamentColorInput.value;
+
+    panelData.timer = totalSeconds;
+
+    localStorage.setItem('overlayData', JSON.stringify(panelData));
+  }
+
+  // Загружаем из localStorage (если есть)
+  function loadFromStorage() {
+    const saved = localStorage.getItem('overlayData');
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      if (typeof data !== 'object') return;
+
+      team1Input.value = data.team1 || 'Команда 1';
+      color1Input.value = data.color1 || '#0055aa';
+      team1TextColorInput.value = data.team1TextColor || '#ffffff';
+
+      team2Input.value = data.team2 || 'Команда 2';
+      color2Input.value = data.color2 || '#aa0000';
+      team2TextColorInput.value = data.team2TextColor || '#ffffff';
+
+      score1Input.value = data.score1 ?? 0;
+      score2Input.value = data.score2 ?? 0;
+      barColorInput.value = data.barColor || '#333333';
+
+      halfTimeInput.value = data.halfTime ?? 20;
+
+      tournamentNameInput.value = data.tournamentName || '';
+      tournamentColorInput.value = data.tournamentColor || '#444444';
+
+      totalSeconds = data.timer ?? 0;
+      updateTimerDisplay();
+
+      panelData.logo1 = data.logo1 || '';
+      panelData.logo2 = data.logo2 || '';
+
+    } catch (e) {
+      console.warn('Ошибка загрузки данных из localStorage', e);
+    }
+  }
+
+  // Сохраняем при изменении
+  [
+    team1Input, color1Input, team1TextColorInput,
+    team2Input, color2Input, team2TextColorInput,
+    score1Input, score2Input,
+    barColorInput, halfTimeInput,
+    tournamentNameInput, tournamentColorInput
+  ].forEach(input => {
+    input.addEventListener('input', saveToStorage);
+  });
+
+  saveBtn.onclick = () => {
+    saveToStorage();
+    alert('Данные сохранены и будут отображаться в оверлее');
+  };
+
+  // При старте загрузим данные
+  loadFromStorage();
+
+  // Обновляем localStorage каждую секунду, если таймер идёт
+  setInterval(() => {
+    if (timerRunning) saveToStorage();
+  }, 1000);
+</script>
+
+</body>
+</html>

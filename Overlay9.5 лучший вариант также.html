@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Оверлей трансляции</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+    body, html {
+      margin: 0; padding: 0;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Roboto', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .overlay {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      pointer-events: none;
+      color: white;
+    }
+
+    /* Плашка с названием соревнования */
+    .tournament-name {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 36px;
+      font-weight: 700;
+      background-color: rgba(0,0,0,0.7);
+      padding: 8px 25px;
+      border-radius: 15px;
+      max-width: 1000px;
+      text-align: center;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: none;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .scorebar {
+      position: absolute;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--bar-color, rgba(51,51,51,0.8));
+      border-radius: 15px;
+      padding: 10px 40px;
+      gap: 60px;
+      min-width: 700px;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .team-block {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: default;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .team-plate {
+      padding: 10px 20px;
+      border-radius: 15px;
+      background-color: var(--team-color, #0055aa);
+      color: var(--team-text-color, #fff);
+      font-weight: 700;
+      font-size: 32px;
+      min-width: 240px;
+      text-align: center;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .team-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: rgba(255,255,255,0.1);
+      pointer-events: none;
+      user-select: none;
+      filter: drop-shadow(0 0 3px black);
+    }
+
+    .score {
+      font-size: 60px;
+      font-weight: 700;
+      min-width: 90px;
+      text-align: center;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* Таймер */
+    .timer {
+      position: absolute;
+      top: 70px; /* ровно как у scorebar */
+      /* left: calc(50% + 370px);  убираем фиксированное значение */
+      transform: none; /* убираем центрирование */
+      font-size: 48px;
+      font-weight: 700;
+      background-color: rgba(0,0,0,0.7);
+      padding: 10px 30px;
+      border-radius: 15px;
+      user-select: none;
+      pointer-events: none;
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="tournament-name" id="tournamentName">Турнир</div>
+
+    <div class="scorebar" id="scorebar" style="--bar-color: #333333;">
+      <div class="team-block" id="team1Block">
+        <img src="" alt="Логотип 1" class="team-logo" id="logo1" />
+        <div class="team-plate" id="team1Name" style="--team-color:#0055aa; --team-text-color:#fff;">Команда 1</div>
+      </div>
+      <div class="score" id="score1">0</div>
+      <div class="score" id="score2">0</div>
+      <div class="team-block" id="team2Block">
+        <div class="team-plate" id="team2Name" style="--team-color:#aa0000; --team-text-color:#fff;">Команда 2</div>
+        <img src="" alt="Логотип 2" class="team-logo" id="logo2" />
+      </div>
+    </div>
+
+    <div class="timer" id="timer">00:00</div>
+  </div>
+
+<script>
+  // Получаем элементы
+  const tournamentNameEl = document.getElementById('tournamentName');
+  const scorebarEl = document.getElementById('scorebar');
+
+  const team1NameEl = document.getElementById('team1Name');
+  const team2NameEl = document.getElementById('team2Name');
+
+  const logo1El = document.getElementById('logo1');
+  const logo2El = document.getElementById('logo2');
+
+  const score1El = document.getElementById('score1');
+  const score2El = document.getElementById('score2');
+
+  const timerEl = document.getElementById('timer');
+
+  // Формат времени (с)
+  function formatTime(s) {
+    const min = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+  }
+
+  // Обновить данные оверлея из объекта
+  function updateOverlay(data) {
+    // Турнир
+    tournamentNameEl.textContent = data.tournamentName || '';
+    tournamentNameEl.style.backgroundColor = data.tournamentColor || 'rgba(0,0,0,0.7)';
+
+    // Цвет плашки счета
+    scorebarEl.style.setProperty('--bar-color', data.barColor || '#333333');
+
+    // Команда 1
+    team1NameEl.textContent = data.team1 || 'Команда 1';
+    team1NameEl.style.setProperty('--team-color', data.color1 || '#0055aa');
+    team1NameEl.style.setProperty('--team-text-color', data.team1TextColor || '#ffffff');
+
+    // Команда 2
+    team2NameEl.textContent = data.team2 || 'Команда 2';
+    team2NameEl.style.setProperty('--team-color', data.color2 || '#aa0000');
+    team2NameEl.style.setProperty('--team-text-color', data.team2TextColor || '#ffffff');
+
+    // Логотипы (base64)
+    if (data.logo1) {
+      logo1El.src = data.logo1;
+      logo1El.style.display = 'block';
+    } else {
+      logo1El.src = '';
+      logo1El.style.display = 'none';
+    }
+    if (data.logo2) {
+      logo2El.src = data.logo2;
+      logo2El.style.display = 'block';
+    } else {
+      logo2El.src = '';
+      logo2El.style.display = 'none';
+    }
+
+    // Счёт
+    score1El.textContent = (data.score1 ?? 0).toString();
+    score2El.textContent = (data.score2 ?? 0).toString();
+
+    // Таймер
+    timerEl.textContent = formatTime(data.timer ?? 0);
+  }
+
+  // Загружаем данные из localStorage
+  function loadData() {
+    try {
+      const saved = localStorage.getItem('overlayData');
+      if (!saved) return null;
+      const data = JSON.parse(saved);
+      return data;
+    } catch(e) {
+      console.warn('Ошибка при загрузке данных оверлея', e);
+      return null;
+    }
+  }
+
+  // Обновляем оверлей по данным из localStorage при загрузке
+  function refreshOverlay() {
+    const data = loadData();
+    if (data) updateOverlay(data);
+  }
+
+  // При старте обновим
+  refreshOverlay();
+
+  // Обработка события storage (если panel.html меняет localStorage)
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'overlayData') {
+      refreshOverlay();
+    }
+  });
+
+  // Для обновления таймера каждую секунду (чтобы не мерцать весь оверлей)
+  setInterval(() => {
+    const data = loadData();
+    if (data) {
+      timerEl.textContent = formatTime(data.timer ?? 0);
+    }
+  }, 1000);
+
+  // НОВЫЙ КОД: позиционируем таймер справа от scorebar
+  function positionTimer() {
+    const scorebarRect = scorebarEl.getBoundingClientRect();
+    const overlayRect = document.querySelector('.overlay').getBoundingClientRect();
+
+    // left таймера = правая граница scorebar относительно .overlay + 20px отступ
+    const leftPos = scorebarRect.right - overlayRect.left + 20;
+
+    timerEl.style.left = leftPos + 'px';
+    timerEl.style.top = scorebarEl.offsetTop + 'px'; // 70px, как в CSS
+  }
+
+  window.addEventListener('load', positionTimer);
+  window.addEventListener('resize', positionTimer);
+</script>
+</body>
+</html>
